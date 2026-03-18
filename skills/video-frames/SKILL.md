@@ -184,12 +184,14 @@ The script prints JSON to stdout with the following structure:
       "claude": 787,
       "openai_high": 765,
       "openai_low": 85,
+      "openai_patch": 934,
       "gemini": 258
     },
     "total": {
       "claude": 23610,
       "openai_high": 22950,
       "openai_low": 2550,
+      "openai_patch": 28020,
       "gemini": 7740
     }
   },
@@ -202,6 +204,7 @@ The script prints JSON to stdout with the following structure:
       "claude": 23610,
       "openai_high": 22950,
       "openai_low": 2550,
+      "openai_patch": 28020,
       "gemini": 7740
     }
   }
@@ -209,6 +212,8 @@ The script prints JSON to stdout with the following structure:
 ```
 
 Use `token_estimate.total` to verify the frame set fits within model context limits before attaching frames to a prompt.
+
+> **Note:** `openai_high` and `openai_low` are for legacy models (GPT-4o, GPT-4.1). `openai_patch` is for newer models (gpt-5.4+, gpt-5-mini, o4-mini). See `references/llm-image-specs.md` for details.
 
 On error, JSON with an `"error"` key is printed to stderr and the script exits with code 1.
 

@@ -115,7 +115,7 @@ def estimate_claude_tokens(w, h):
 
 
 def estimate_openai_high_tokens(w, h):
-    """GPT-4o high detail: scale short side to 768, count 512x512 tiles, 170/tile + 85 base."""
+    """GPT-4o/4.1 legacy tile-based high detail: scale short side to 768, count 512x512 tiles, 170/tile + 85 base."""
     short_side = min(w, h)
     long_side = max(w, h)
     if short_side > 768:
@@ -137,6 +137,16 @@ def estimate_gemini_tokens(w, h):
     if w > 384 or h > 384:
         return math.ceil(w / 768) * math.ceil(h / 768) * 258
     return 258
+
+
+def estimate_openai_patch_tokens(w, h):
+    """Newer OpenAI patch-based models (gpt-5.4+, gpt-5-mini, o4-mini).
+
+    Calculates token cost using 32x32 pixel patches with a 1.62 multiplier
+    (gpt-5.4-mini baseline). High-detail cap is 2,500 patches.
+    """
+    patches = math.ceil(w / 32) * math.ceil(h / 32)
+    return int(math.ceil(min(patches, 2500) * 1.62))
 
 
 # ---------------------------------------------------------------------------
@@ -310,7 +320,7 @@ def extract_frames(
     frame_count = len(frames)
 
     # --- Empty result shortcut ---
-    _zero_tokens = {"claude": 0, "openai_high": 0, "openai_low": 0, "gemini": 0}
+    _zero_tokens = {"claude": 0, "openai_high": 0, "openai_low": 0, "openai_patch": 0, "gemini": 0}
     if frame_count == 0:
         return {
             "output_dir": output_dir,
@@ -338,12 +348,14 @@ def extract_frames(
     pf_claude = estimate_claude_tokens(width, height)
     pf_openai_high = estimate_openai_high_tokens(width, height)
     pf_openai_low = estimate_openai_low_tokens(width, height)
+    pf_openai_patch = estimate_openai_patch_tokens(width, height)
     pf_gemini = estimate_gemini_tokens(width, height)
 
     per_frame = {
         "claude": pf_claude,
         "openai_high": pf_openai_high,
         "openai_low": pf_openai_low,
+        "openai_patch": pf_openai_patch,
         "gemini": pf_gemini,
     }
     total = {k: v * frame_count for k, v in per_frame.items()}
